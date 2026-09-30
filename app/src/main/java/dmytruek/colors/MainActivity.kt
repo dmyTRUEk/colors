@@ -119,9 +119,10 @@ fun ColorLearningApp(colors: List<ColorData>) {
 
     val questionQueue = remember {
         mutableStateListOf<QuestionState>().apply {
+            val pool = SettingsManager.getActiveColors(context)
             addAll(
                 generateQueue(
-                    colors,
+                    pool,
                     SettingsManager.getMaxPos(context),
                     SettingsManager.getCandidatesCount(context)
                 )
@@ -132,10 +133,11 @@ fun ColorLearningApp(colors: List<ColorData>) {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                val pool = SettingsManager.getActiveColors(context)
                 val maxPos = SettingsManager.getMaxPos(context)
                 val candidatesLimit = SettingsManager.getCandidatesCount(context)
                 while (questionQueue.size < maxPos) {
-                    questionQueue.add(generateQuestion(colors, candidatesLimit))
+                    questionQueue.add(generateQuestion(pool, candidatesLimit))
                 }
                 while (questionQueue.size > maxPos && questionQueue.size > 1) {
                     questionQueue.removeAt(questionQueue.size - 1)
@@ -152,6 +154,7 @@ fun ColorLearningApp(colors: List<ColorData>) {
 
     fun onAnswerSelected(selected: ColorData) {
         totalAnswered++
+        val pool = SettingsManager.getActiveColors(context)
         val isCorrect = (selected == currentQuestion.target)
         val minPos = SettingsManager.getMinPos(context)
         val maxPos = SettingsManager.getMaxPos(context)
@@ -160,7 +163,7 @@ fun ColorLearningApp(colors: List<ColorData>) {
         if (isCorrect) {
             correctCount++
             questionQueue.removeAt(0)
-            questionQueue.add(generateQuestion(colors, candidatesLimit))
+            questionQueue.add(generateQuestion(pool, candidatesLimit))
         } else {
             val wrongQuestion = questionQueue.removeAt(0)
             val actualMinIndex = (minPos - 1).coerceIn(0, questionQueue.size)
@@ -174,7 +177,7 @@ fun ColorLearningApp(colors: List<ColorData>) {
         }
 
         while (questionQueue.size < maxPos) {
-            questionQueue.add(generateQuestion(colors, candidatesLimit))
+            questionQueue.add(generateQuestion(pool, candidatesLimit))
         }
         while (questionQueue.size > maxPos && questionQueue.size > 1) {
             questionQueue.removeAt(questionQueue.size - 1)

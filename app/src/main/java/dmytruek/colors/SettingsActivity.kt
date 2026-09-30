@@ -1,6 +1,7 @@
 package dmytruek.colors
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,8 +35,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,6 +50,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,9 +84,24 @@ class SettingsActivity : ComponentActivity() {
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var minText by remember { mutableStateOf(SettingsManager.getMinPos(context).toString()) }
     var maxText by remember { mutableStateOf(SettingsManager.getMaxPos(context).toString()) }
     var candidatesText by remember { mutableStateOf(SettingsManager.getCandidatesCount(context).toString()) }
+    var disabledCount by remember { mutableIntStateOf(SettingsManager.getDisabledColors(context).size) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                disabledCount = SettingsManager.getDisabledColors(context).size
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val minVal = minText.toIntOrNull()
     val maxVal = maxText.toIntOrNull()
@@ -181,6 +203,30 @@ fun SettingsScreen() {
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                Text(
+                    text = "Color Pool",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                Text(
+                    text = "Select which colors appear in your quiz questions.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                val enabledCount = allColors.size - disabledCount
+
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(context, ColorSelectionActivity::class.java))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Manage Quiz Colors ($enabledCount / ${allColors.size} active)")
+                }
             }
 
             if (warningMessage != null) {
