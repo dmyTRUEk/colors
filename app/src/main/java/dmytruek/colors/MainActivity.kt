@@ -197,7 +197,7 @@ fun ColorLearningApp(colors: List<ColorData>) {
     }
 
     val isDark = isSystemInDarkTheme()
-    val defaultTextBgColor = if (isDark) Color.Black else Color(0xFFF5F5F5)
+    val defaultTextBgColor = if (isDark) Color.Black else Color.White
     val defaultTextColor = if (isDark) Color.White else Color.Black
 
     val scoreBgColor = when (lastAnswerWasCorrect) {
