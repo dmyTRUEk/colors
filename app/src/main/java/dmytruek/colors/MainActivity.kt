@@ -1,7 +1,14 @@
 package dmytruek.colors
 
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.view.HapticFeedbackConstants
+import android.view.View
+import androidx.compose.ui.platform.LocalView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -79,6 +86,20 @@ fun generateQueue(colorPool: List<ColorData>, count: Int, candidatesLimit: Int):
     return List(count) { generateQuestion(colorPool, candidatesLimit) }
 }
 
+fun performWrongAnswerHaptic(context: Context, view: View) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val vibrator = context.getSystemService(Vibrator::class.java)
+        val effect = VibrationEffect.createWaveform(
+            longArrayOf(0, 70, 50, 120),
+            intArrayOf(0, 255, 0, 255),
+            -1
+        )
+        vibrator?.vibrate(effect)
+    } else {
+        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+    }
+}
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,6 +133,7 @@ class MainActivity : ComponentActivity() {
 fun ColorLearningApp(colors: List<ColorData>) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val view = LocalView.current
 
     var totalAnswered by remember { mutableIntStateOf(0) }
     var correctCount by remember { mutableIntStateOf(0) }
@@ -171,10 +193,12 @@ fun ColorLearningApp(colors: List<ColorData>) {
         val candidatesLimit = SettingsManager.getCandidatesCount(context)
 
         if (isCorrect) {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             correctCount++
             questionQueue.removeAt(0)
             questionQueue.add(generateQuestion(pool, candidatesLimit))
         } else {
+            performWrongAnswerHaptic(context, view)
             val wrongQuestion = questionQueue.removeAt(0)
             val actualMinIndex = (minPos - 1).coerceIn(0, questionQueue.size)
             val actualMaxIndex = (maxPos - 1).coerceIn(actualMinIndex, questionQueue.size)
