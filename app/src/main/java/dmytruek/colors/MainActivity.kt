@@ -54,13 +54,13 @@ fun colorDistanceSq(c1: Int, c2: Int): Long {
 }
 
 fun generateQuestion(
-    allColors: List<ColorData>,
+    colorPool: List<ColorData>,
     candidatesLimit: Int = SettingsManager.DEFAULT_CANDIDATES_COUNT
 ): QuestionState {
-    val target = allColors.random()
-    val sorted = allColors.sortedBy { colorDistanceSq(it.colorInt, target.colorInt) }
+    val target = colorPool.random()
+    val sorted = colorPool.sortedBy { colorDistanceSq(it.colorInt, target.colorInt) }
 
-    // Uniformly sample 3 wrong choices from the top closest candidate colors
+    // Uniformly sample 3 wrong choices from the top closest candidate colors in active pool
     val candidatesCount = minOf(candidatesLimit, sorted.size - 1)
     val topCandidates = sorted.subList(1, 1 + candidatesCount)
     val wrongChoices = topCandidates.shuffled().take(3)
@@ -75,8 +75,8 @@ fun generateQuestion(
     )
 }
 
-fun generateQueue(allColors: List<ColorData>, count: Int, candidatesLimit: Int): List<QuestionState> {
-    return List(count) { generateQuestion(allColors, candidatesLimit) }
+fun generateQueue(colorPool: List<ColorData>, count: Int, candidatesLimit: Int): List<QuestionState> {
+    return List(count) { generateQuestion(colorPool, candidatesLimit) }
 }
 
 class MainActivity : ComponentActivity() {
@@ -136,6 +136,16 @@ fun ColorLearningApp(colors: List<ColorData>) {
                 val pool = SettingsManager.getActiveColors(context)
                 val maxPos = SettingsManager.getMaxPos(context)
                 val candidatesLimit = SettingsManager.getCandidatesCount(context)
+                val poolSet = pool.toSet()
+
+                // Purge/replace any existing question whose target or choices are no longer active
+                for (i in questionQueue.indices) {
+                    val q = questionQueue[i]
+                    if (q.target !in poolSet || q.choices.any { it !in poolSet }) {
+                        questionQueue[i] = generateQuestion(pool, candidatesLimit)
+                    }
+                }
+
                 while (questionQueue.size < maxPos) {
                     questionQueue.add(generateQuestion(pool, candidatesLimit))
                 }
