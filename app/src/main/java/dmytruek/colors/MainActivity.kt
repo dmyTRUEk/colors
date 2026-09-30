@@ -23,6 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -69,6 +72,10 @@ fun generateQuestion(allColors: List<ColorData>): QuestionState {
     )
 }
 
+fun generateQueue(allColors: List<ColorData>, count: Int): List<QuestionState> {
+    return List(count) { generateQuestion(allColors) }
+}
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,19 +108,68 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ColorLearningApp(colors: List<ColorData>) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var totalAnswered by remember { mutableIntStateOf(0) }
     var correctCount by remember { mutableIntStateOf(0) }
     var lastAnswerWasCorrect by remember { mutableStateOf<Boolean?>(null) }
-    var currentQuestion by remember { mutableStateOf(generateQuestion(colors)) }
+
+    val questionQueue = remember {
+        mutableStateListOf<QuestionState>().apply {
+            addAll(generateQueue(colors, SettingsManager.getMaxPos(context)))
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val maxPos = SettingsManager.getMaxPos(context)
+                while (questionQueue.size < maxPos) {
+                    questionQueue.add(generateQuestion(colors))
+                }
+                while (questionQueue.size > maxPos && questionQueue.size > 1) {
+                    questionQueue.removeAt(questionQueue.size - 1)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    val currentQuestion = questionQueue.first()
 
     fun onAnswerSelected(selected: ColorData) {
         totalAnswered++
         val isCorrect = (selected == currentQuestion.target)
+        val minPos = SettingsManager.getMinPos(context)
+        val maxPos = SettingsManager.getMaxPos(context)
+
         if (isCorrect) {
             correctCount++
+            questionQueue.removeAt(0)
+            questionQueue.add(generateQuestion(colors))
+        } else {
+            val wrongQuestion = questionQueue.removeAt(0)
+            val actualMinIndex = (minPos - 1).coerceIn(0, questionQueue.size)
+            val actualMaxIndex = (maxPos - 1).coerceIn(actualMinIndex, questionQueue.size)
+            val insertIndex = if (actualMinIndex == actualMaxIndex) {
+                actualMinIndex
+            } else {
+                Random.nextInt(actualMinIndex, actualMaxIndex + 1)
+            }
+            questionQueue.add(insertIndex, wrongQuestion)
         }
+
+        while (questionQueue.size < maxPos) {
+            questionQueue.add(generateQuestion(colors))
+        }
+        while (questionQueue.size > maxPos && questionQueue.size > 1) {
+            questionQueue.removeAt(questionQueue.size - 1)
+        }
+
         lastAnswerWasCorrect = isCorrect
-        currentQuestion = generateQuestion(colors)
     }
 
     val isDark = isSystemInDarkTheme()
