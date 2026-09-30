@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +27,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
@@ -153,6 +157,12 @@ fun ColorItem(
     }
 }
 
+enum class ColorFilterMode(val label: String) {
+    ALL("All"),
+    ENABLED("Enabled"),
+    DISABLED("Disabled")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ColorSelectionScreen() {
@@ -161,7 +171,12 @@ fun ColorSelectionScreen() {
     var disabledColors by remember { mutableStateOf<Set<String>>(SettingsManager.getDisabledColors(context)) }
     var warningMessage by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
-    val fullListState = rememberLazyListState()
+    var filterMenuExpanded by remember { mutableStateOf(false) }
+    var filterMode by remember { mutableStateOf(ColorFilterMode.ALL) }
+
+    val allListState = rememberLazyListState()
+    val enabledListState = rememberLazyListState()
+    val disabledListState = rememberLazyListState()
     val searchListState = rememberLazyListState()
 
     LaunchedEffect(searchQuery) {
@@ -170,15 +185,31 @@ fun ColorSelectionScreen() {
         }
     }
 
-    val filteredColors = remember(searchQuery) {
+    LaunchedEffect(filterMode) {
+        if (searchQuery.isBlank()) {
+            when (filterMode) {
+                ColorFilterMode.ALL -> allListState.scrollToItem(0)
+                ColorFilterMode.ENABLED -> enabledListState.scrollToItem(0)
+                ColorFilterMode.DISABLED -> disabledListState.scrollToItem(0)
+            }
+        }
+    }
+
+    val filteredColors = remember(searchQuery, filterMode, disabledColors) {
+        val basePool = when (filterMode) {
+            ColorFilterMode.ALL -> allColors
+            ColorFilterMode.ENABLED -> allColors.filter { it.name !in disabledColors }
+            ColorFilterMode.DISABLED -> allColors.filter { it.name in disabledColors }
+        }
+
         val query = searchQuery.trim().lowercase()
         if (query.isEmpty()) {
-            allColors
+            basePool
         } else {
             val isHexSearch = query.startsWith("#")
             val subQuery = if (isHexSearch) query.removePrefix("#") else query
 
-            allColors.mapNotNull { colorData ->
+            basePool.mapNotNull { colorData ->
                 val matchRank = if (isHexSearch) {
                     val hexClean = String.format("%06x", 0xFFFFFF and colorData.colorInt)
                     hexClean.indexOf(subQuery)
@@ -196,6 +227,13 @@ fun ColorSelectionScreen() {
                     .thenBy { it.third }
             ).map { it.first }
         }
+    }
+
+    val currentListState = when {
+        searchQuery.isNotBlank() -> searchListState
+        filterMode == ColorFilterMode.ENABLED -> enabledListState
+        filterMode == ColorFilterMode.DISABLED -> disabledListState
+        else -> allListState
     }
 
     val enabledCount: Int = allColors.size - disabledColors.size
@@ -295,6 +333,52 @@ fun ColorSelectionScreen() {
                     }
                 },
                 actions = {
+                    Box {
+                        IconButton(onClick = { filterMenuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.List,
+                                contentDescription = "Filter colors"
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = filterMenuExpanded,
+                            onDismissRequest = { filterMenuExpanded = false },
+                            shape = RoundedCornerShape(20.dp),
+                            modifier = Modifier.width(180.dp)
+                        ) {
+                            ColorFilterMode.entries.forEach { mode ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            if (filterMode == mode) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            } else {
+                                                Spacer(modifier = Modifier.width(16.dp))
+                                            }
+                                            Text(
+                                                text = mode.label,
+                                                fontWeight = if (filterMode == mode) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        filterMenuExpanded = false
+                                        filterMode = mode
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(
@@ -399,7 +483,7 @@ fun ColorSelectionScreen() {
                 )
 
                 LazyColumn(
-                    state = if (searchQuery.isBlank()) fullListState else searchListState,
+                    state = currentListState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
