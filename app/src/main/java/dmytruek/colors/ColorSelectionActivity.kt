@@ -161,10 +161,16 @@ fun ColorSelectionScreen() {
     var menuExpanded by remember { mutableStateOf(false) }
 
     val filteredColors = remember(searchQuery) {
-        if (searchQuery.isBlank()) {
+        val query = searchQuery.trim().lowercase()
+        if (query.isEmpty()) {
             allColors
         } else {
-            allColors.filter { it.name.contains(searchQuery, ignoreCase = true) }
+            allColors.filter { colorData ->
+                val hexClean = String.format("%06x", 0xFFFFFF and colorData.colorInt)
+                colorData.name.lowercase().contains(query) ||
+                        hexClean.contains(query) ||
+                        "#$hexClean".contains(query)
+            }
         }
     }
 
