@@ -165,12 +165,22 @@ fun ColorSelectionScreen() {
         if (query.isEmpty()) {
             allColors
         } else {
-            allColors.filter { colorData ->
+            allColors.mapNotNull { colorData ->
+                val nameLower = colorData.name.lowercase()
+                val nameIndex = nameLower.indexOf(query)
                 val hexClean = String.format("%06x", 0xFFFFFF and colorData.colorInt)
-                colorData.name.lowercase().contains(query) ||
-                        hexClean.contains(query) ||
-                        "#$hexClean".contains(query)
-            }
+                val hexMatches = hexClean.contains(query) || "#$hexClean".contains(query)
+
+                val matchRank = when {
+                    nameIndex >= 0 -> nameIndex
+                    hexMatches -> Int.MAX_VALUE - 1
+                    else -> return@mapNotNull null
+                }
+                Triple(colorData, matchRank, colorData.name)
+            }.sortedWith(
+                compareBy<Triple<ColorData, Int, String>> { it.second }
+                    .thenBy { it.third }
+            ).map { it.first }
         }
     }
 
