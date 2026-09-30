@@ -44,7 +44,7 @@ data class QuestionState(
     val isQuestionColorValue: Boolean,
 )
 
-fun colorDistanceSq(c1: Int, c2: Int): Long {
+fun colorDistance(c1: Int, c2: Int): Long {
     val r1 = (c1 shr 16) and 0xFF
     val g1 = (c1 shr 8) and 0xFF
     val b1 = c1 and 0xFF
@@ -57,7 +57,7 @@ fun colorDistanceSq(c1: Int, c2: Int): Long {
     val dg = abs(g1 - g2).toLong()
     val db = abs(b1 - b2).toLong()
 
-    return dr * dr + dg * dg + db * db
+    return dr + dg + db
 }
 
 fun generateQuestion(
@@ -65,7 +65,7 @@ fun generateQuestion(
     candidatesLimit: Int = SettingsManager.DEFAULT_CANDIDATES_COUNT
 ): QuestionState {
     val target = colorPool.random()
-    val sorted = colorPool.sortedBy { colorDistanceSq(it.colorInt, target.colorInt) }
+    val sorted = colorPool.sortedBy { colorDistance(it.colorInt, target.colorInt) }
 
     // Uniformly sample 3 wrong choices from the top closest candidate colors in active pool
     val candidatesCount = minOf(candidatesLimit, sorted.size - 1)
