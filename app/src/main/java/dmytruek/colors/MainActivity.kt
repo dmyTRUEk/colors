@@ -1,11 +1,14 @@
 package dmytruek.colors
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -93,8 +97,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColorLearningApp(colors: List<ColorData>) {
+    val context = LocalContext.current
     var totalAnswered by remember { mutableIntStateOf(0) }
     var correctCount by remember { mutableIntStateOf(0) }
     var lastAnswerWasCorrect by remember { mutableStateOf<Boolean?>(null) }
@@ -136,6 +142,12 @@ fun ColorLearningApp(colors: List<ColorData>) {
                         Modifier.background(Color(currentQuestion.target.colorInt))
                     } else {
                         Modifier.background(defaultTextBgColor)
+                    }
+                )
+                .combinedClickable(
+                    onClick = {},
+                    onLongClick = {
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
                     }
                 ),
             contentAlignment = Alignment.Center
