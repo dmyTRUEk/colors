@@ -161,10 +161,13 @@ fun ColorSelectionScreen() {
     var disabledColors by remember { mutableStateOf<Set<String>>(SettingsManager.getDisabledColors(context)) }
     var warningMessage by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
+    val fullListState = rememberLazyListState()
+    val searchListState = rememberLazyListState()
 
     LaunchedEffect(searchQuery) {
-        listState.scrollToItem(0)
+        if (searchQuery.isNotBlank()) {
+            searchListState.scrollToItem(0)
+        }
     }
 
     val filteredColors = remember(searchQuery) {
@@ -396,7 +399,7 @@ fun ColorSelectionScreen() {
                 )
 
                 LazyColumn(
-                    state = listState,
+                    state = if (searchQuery.isBlank()) fullListState else searchListState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
