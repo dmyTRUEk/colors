@@ -482,21 +482,53 @@ fun ColorSelectionScreen() {
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                LazyColumn(
-                    state = currentListState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(
-                        items = filteredColors,
-                        key = { it.name }
-                    ) { colorData ->
-                        val isEnabled = colorData.name !in disabledColors
-                        ColorItem(
-                            colorData = colorData,
-                            isEnabled = isEnabled,
-                            onToggle = { enabled -> toggleColor(colorData.name, enabled) }
-                        )
+                if (filteredColors.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "No colors found",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center
+                            )
+                            val suggestionText = if (filterMode != ColorFilterMode.ALL) {
+                                "No results match your search under the \"${filterMode.label}\" filter.\nTry switching the filter to 'All'."
+                            } else {
+                                "No colors match your search query."
+                            }
+                            Text(
+                                text = suggestionText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        state = currentListState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(
+                            items = filteredColors,
+                            key = { it.name }
+                        ) { colorData ->
+                            val isEnabled = colorData.name !in disabledColors
+                            ColorItem(
+                                colorData = colorData,
+                                isEnabled = isEnabled,
+                                onToggle = { enabled -> toggleColor(colorData.name, enabled) }
+                            )
+                        }
                     }
                 }
             }
