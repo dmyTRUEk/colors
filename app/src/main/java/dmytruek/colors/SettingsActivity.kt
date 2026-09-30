@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,20 +79,26 @@ fun SettingsScreen() {
     val context = LocalContext.current
     var minText by remember { mutableStateOf(SettingsManager.getMinPos(context).toString()) }
     var maxText by remember { mutableStateOf(SettingsManager.getMaxPos(context).toString()) }
+    var candidatesText by remember { mutableStateOf(SettingsManager.getCandidatesCount(context).toString()) }
 
     val minVal = minText.toIntOrNull()
     val maxVal = maxText.toIntOrNull()
+    val candidatesVal = candidatesText.toIntOrNull()
+
+    val maxCandidates = allColors.size
 
     val warningMessage: String? = when {
-        minVal == null || maxVal == null -> "Please enter valid numbers"
+        minVal == null || maxVal == null || candidatesVal == null -> "Please enter valid numbers"
         minVal < 1 || maxVal < 1 -> "Position must be at least 1"
         minVal > maxVal -> "Min position cannot be greater than max position"
+        candidatesVal < 3 -> "Candidates count must be at least 3"
+        candidatesVal > maxCandidates -> "Candidates count cannot exceed $maxCandidates"
         else -> null
     }
 
-    LaunchedEffect(minVal, maxVal) {
-        if (warningMessage == null && minVal != null && maxVal != null) {
-            SettingsManager.savePositions(context, minVal, maxVal)
+    LaunchedEffect(minVal, maxVal, candidatesVal) {
+        if (warningMessage == null && minVal != null && maxVal != null && candidatesVal != null) {
+            SettingsManager.saveSettings(context, minVal, maxVal, candidatesVal)
         }
     }
 
@@ -118,6 +126,7 @@ fun SettingsScreen() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -146,6 +155,28 @@ fun SettingsScreen() {
                     value = maxText,
                     onValueChange = { maxText = it },
                     label = { Text("Max position") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = "Question Difficulty",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                Text(
+                    text = "Number of closest color candidates to randomly sample wrong choices from (minimum 3, maximum ${allColors.size}).",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                OutlinedTextField(
+                    value = candidatesText,
+                    onValueChange = { candidatesText = it },
+                    label = { Text("Candidates count") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()

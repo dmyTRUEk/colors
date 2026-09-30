@@ -53,12 +53,15 @@ fun colorDistanceSq(c1: Int, c2: Int): Long {
     return dr * dr + dg * dg + db * db
 }
 
-fun generateQuestion(allColors: List<ColorData>): QuestionState {
+fun generateQuestion(
+    allColors: List<ColorData>,
+    candidatesLimit: Int = SettingsManager.DEFAULT_CANDIDATES_COUNT
+): QuestionState {
     val target = allColors.random()
     val sorted = allColors.sortedBy { colorDistanceSq(it.colorInt, target.colorInt) }
 
-    // Uniformly sample 3 wrong choices from the top 10 closest colors
-    val candidatesCount = minOf(10, sorted.size - 1)
+    // Uniformly sample 3 wrong choices from the top closest candidate colors
+    val candidatesCount = minOf(candidatesLimit, sorted.size - 1)
     val topCandidates = sorted.subList(1, 1 + candidatesCount)
     val wrongChoices = topCandidates.shuffled().take(3)
 
@@ -72,8 +75,8 @@ fun generateQuestion(allColors: List<ColorData>): QuestionState {
     )
 }
 
-fun generateQueue(allColors: List<ColorData>, count: Int): List<QuestionState> {
-    return List(count) { generateQuestion(allColors) }
+fun generateQueue(allColors: List<ColorData>, count: Int, candidatesLimit: Int): List<QuestionState> {
+    return List(count) { generateQuestion(allColors, candidatesLimit) }
 }
 
 class MainActivity : ComponentActivity() {
@@ -116,7 +119,13 @@ fun ColorLearningApp(colors: List<ColorData>) {
 
     val questionQueue = remember {
         mutableStateListOf<QuestionState>().apply {
-            addAll(generateQueue(colors, SettingsManager.getMaxPos(context)))
+            addAll(
+                generateQueue(
+                    colors,
+                    SettingsManager.getMaxPos(context),
+                    SettingsManager.getCandidatesCount(context)
+                )
+            )
         }
     }
 
@@ -124,8 +133,9 @@ fun ColorLearningApp(colors: List<ColorData>) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 val maxPos = SettingsManager.getMaxPos(context)
+                val candidatesLimit = SettingsManager.getCandidatesCount(context)
                 while (questionQueue.size < maxPos) {
-                    questionQueue.add(generateQuestion(colors))
+                    questionQueue.add(generateQuestion(colors, candidatesLimit))
                 }
                 while (questionQueue.size > maxPos && questionQueue.size > 1) {
                     questionQueue.removeAt(questionQueue.size - 1)
@@ -145,11 +155,12 @@ fun ColorLearningApp(colors: List<ColorData>) {
         val isCorrect = (selected == currentQuestion.target)
         val minPos = SettingsManager.getMinPos(context)
         val maxPos = SettingsManager.getMaxPos(context)
+        val candidatesLimit = SettingsManager.getCandidatesCount(context)
 
         if (isCorrect) {
             correctCount++
             questionQueue.removeAt(0)
-            questionQueue.add(generateQuestion(colors))
+            questionQueue.add(generateQuestion(colors, candidatesLimit))
         } else {
             val wrongQuestion = questionQueue.removeAt(0)
             val actualMinIndex = (minPos - 1).coerceIn(0, questionQueue.size)
@@ -163,7 +174,7 @@ fun ColorLearningApp(colors: List<ColorData>) {
         }
 
         while (questionQueue.size < maxPos) {
-            questionQueue.add(generateQuestion(colors))
+            questionQueue.add(generateQuestion(colors, candidatesLimit))
         }
         while (questionQueue.size > maxPos && questionQueue.size > 1) {
             questionQueue.removeAt(questionQueue.size - 1)
