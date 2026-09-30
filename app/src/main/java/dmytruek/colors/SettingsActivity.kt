@@ -157,13 +157,11 @@ fun SettingsScreen() {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-
                 Text(
                     text = "When an answer is incorrect, the question is placed back into the queue between min and max positions.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 OutlinedTextField(
                     value = minText,
                     onValueChange = { minText = it },
@@ -172,7 +170,6 @@ fun SettingsScreen() {
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 OutlinedTextField(
                     value = maxText,
                     onValueChange = { maxText = it },
@@ -188,13 +185,11 @@ fun SettingsScreen() {
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-
                 Text(
                     text = "Number of closest color candidates to randomly sample wrong choices from (minimum 3, maximum ${allColors.size}).",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 OutlinedTextField(
                     value = candidatesText,
                     onValueChange = { candidatesText = it },
@@ -210,15 +205,12 @@ fun SettingsScreen() {
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-
                 Text(
                     text = "Select which colors appear in your quiz questions.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 val enabledCount = allColors.size - disabledCount
-
                 OutlinedButton(
                     onClick = {
                         context.startActivity(Intent(context, ColorSelectionActivity::class.java))

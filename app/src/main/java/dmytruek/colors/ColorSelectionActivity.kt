@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -187,6 +188,13 @@ fun ColorSelectionScreen() {
         }
     }
 
+    fun randomize() {
+        val currentEnabledCount = maxOf(4, allColors.size - disabledColors.size)
+        val newEnabledNames = allColors.shuffled().take(currentEnabledCount).map { it.name }.toSet()
+        val newDisabledNames = allColors.map { it.name }.filter { it !in newEnabledNames }.toSet()
+        updateDisabled(newDisabledNames)
+    }
+
     fun enableAll() {
         updateDisabled(emptySet())
     }
@@ -267,7 +275,9 @@ fun ColorSelectionScreen() {
 
                         DropdownMenu(
                             expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
+                            onDismissRequest = { menuExpanded = false },
+                            shape = RoundedCornerShape(20.dp),
+                            modifier = Modifier.width(200.dp)
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Disable All") },
@@ -309,6 +319,13 @@ fun ColorSelectionScreen() {
                                 onClick = {
                                     menuExpanded = false
                                     enableTen()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Random") },
+                                onClick = {
+                                    menuExpanded = false
+                                    randomize()
                                 }
                             )
                         }
