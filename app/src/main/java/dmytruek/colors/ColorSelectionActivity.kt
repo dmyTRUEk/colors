@@ -172,7 +172,6 @@ fun ColorSelectionScreen() {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var disabledColors by remember { mutableStateOf<Set<String>>(SettingsManager.getDisabledColors(context)) }
-    var warningMessage by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     var filterMenuExpanded by remember { mutableStateOf(false) }
     var filterMode by remember { mutableStateOf(ColorFilterMode.ALL) }
@@ -241,39 +240,39 @@ fun ColorSelectionScreen() {
 
     val enabledCount: Int = allColors.size - disabledColors.size
 
-    fun updateDisabled(newDisabled: Set<String>) {
-        disabledColors = newDisabled
-        warningMessage = null
-        SettingsManager.setDisabledColors(context, newDisabled)
+    val warningMessage: String? = if (enabledCount < 4) {
+        "At least 4 colors must be enabled for quiz choices"
+    } else {
+        null
+    }
+
+    LaunchedEffect(disabledColors) {
+        if (warningMessage == null) {
+            SettingsManager.setDisabledColors(context, disabledColors)
+        }
     }
 
     fun toggleColor(colorName: String, isEnabled: Boolean) {
-        if (!isEnabled) {
-            if (enabledCount <= 4) {
-                warningMessage = "At least 4 colors must remain enabled for quiz choices!"
-                return
-            }
-            updateDisabled(disabledColors + colorName)
+        disabledColors = if (isEnabled) {
+            disabledColors - colorName
         } else {
-            updateDisabled(disabledColors - colorName)
+            disabledColors + colorName
         }
     }
 
     fun randomize() {
-        val currentEnabledCount = maxOf(4, allColors.size - disabledColors.size)
-        val newEnabledNames = allColors.shuffled().take(currentEnabledCount).map { it.name }.toSet()
-        val newDisabledNames = allColors.map { it.name }.filter { it !in newEnabledNames }.toSet()
-        updateDisabled(newDisabledNames)
+        val currentEnabledCount = allColors.size - disabledColors.size
+        val countToEnable = maxOf(4, currentEnabledCount)
+        val enabledNames = allColors.shuffled().take(countToEnable).map { it.name }.toSet()
+        disabledColors = allColors.map { it.name }.filter { it !in enabledNames }.toSet()
     }
 
     fun enableAll() {
-        updateDisabled(emptySet())
+        disabledColors = emptySet()
     }
 
     fun disableAll() {
-        val keepColors = allColors.shuffled().take(4).map { it.name }.toSet()
-        val newDisabled = allColors.map { it.name }.filter { it !in keepColors }.toSet()
-        updateDisabled(newDisabled)
+        disabledColors = allColors.map { it.name }.toSet()
     }
 
     fun enableHalf() {
@@ -281,17 +280,16 @@ fun ColorSelectionScreen() {
         if (disabledList.isEmpty()) return
         val countToEnable = (disabledList.size + 1) / 2
         val newlyEnabled = disabledList.shuffled().take(countToEnable).map { it.name }.toSet()
-        updateDisabled(disabledColors - newlyEnabled)
+        disabledColors = disabledColors - newlyEnabled
     }
 
     fun disableHalf() {
         val enabledList = allColors.filter { it.name !in disabledColors }
-        val maxCanDisable = maxOf(0, enabledList.size - 4)
-        if (maxCanDisable == 0) return
-        val countToDisable = minOf(enabledList.size / 2, maxCanDisable)
+        if (enabledList.isEmpty()) return
+        val countToDisable = enabledList.size / 2
         if (countToDisable > 0) {
             val newlyDisabled = enabledList.shuffled().take(countToDisable).map { it.name }.toSet()
-            updateDisabled(disabledColors + newlyDisabled)
+            disabledColors = disabledColors + newlyDisabled
         }
     }
 
@@ -300,17 +298,16 @@ fun ColorSelectionScreen() {
         if (disabledList.isEmpty()) return
         val countToEnable = minOf(10, disabledList.size)
         val newlyEnabled = disabledList.shuffled().take(countToEnable).map { it.name }.toSet()
-        updateDisabled(disabledColors - newlyEnabled)
+        disabledColors = disabledColors - newlyEnabled
     }
 
     fun disableTen() {
         val enabledList = allColors.filter { it.name !in disabledColors }
-        val maxCanDisable = maxOf(0, enabledList.size - 4)
-        if (maxCanDisable == 0) return
-        val countToDisable = minOf(10, maxCanDisable)
+        if (enabledList.isEmpty()) return
+        val countToDisable = minOf(10, enabledList.size)
         if (countToDisable > 0) {
             val newlyDisabled = enabledList.shuffled().take(countToDisable).map { it.name }.toSet()
-            updateDisabled(disabledColors + newlyDisabled)
+            disabledColors = disabledColors + newlyDisabled
         }
     }
 
@@ -553,7 +550,7 @@ fun ColorSelectionScreen() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = warningMessage!!,
+                        text = warningMessage,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
