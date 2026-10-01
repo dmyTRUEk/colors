@@ -25,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -1085,3 +1087,47 @@ val allColors: List<ColorData> = listOf(
     "#0014a8" to "Zaffre",
     "#2c1608" to "Zinnwaldite brown",
 ).map { (hex, name) -> ColorData(hex.toColorInt(), name) }
+
+@Preview(showBackground = true)
+@Composable
+fun AppLogoPreview() {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Light Theme
+        MaterialTheme(colorScheme = lightColorScheme()) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(MaterialTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = "App Logo Light",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(108.dp)
+                )
+            }
+        }
+        // Dark Theme
+        MaterialTheme(colorScheme = darkColorScheme()) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(MaterialTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = "App Logo Dark",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(108.dp)
+                )
+            }
+        }
+    }
+}
+
+

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Logo 4 Quadrant Colors (API 31+ Dark Theme Dynamic System Palette) -->
+    <color name="logo_color_tl">@android:color/system_accent1_700</color>
+    <color name="logo_color_tr">@android:color/system_accent2_700</color>
+    <color name="logo_color_bl">@android:color/system_accent3_700</color>
+    <color name="logo_color_br">@android:color/system_neutral2_700</color>
+</resources>
