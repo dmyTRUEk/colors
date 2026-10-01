@@ -8,20 +8,20 @@
     <!-- Top-Left Quadrant -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M0,0 h53 v53 h-53 z" />
+        android:pathData="M0,0 h54 v54 h-54 z" />
 
     <!-- Top-Right Quadrant -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M55,0 h53 v53 h-53 z" />
+        android:pathData="M54,0 h54 v54 h-54 z" />
 
     <!-- Bottom-Left Quadrant -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M0,55 h53 v53 h-53 z" />
+        android:pathData="M0,54 h54 v54 h-54 z" />
 
     <!-- Bottom-Right Quadrant -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M55,55 h53 v53 h-53 z" />
+        android:pathData="M54,54 h54 v54 h-54 z" />
 </vector>
