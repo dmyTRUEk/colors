@@ -5,9 +5,7 @@ plugins {
 
 android {
     namespace = "dmytruek.colors"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "dmytruek.colors"
@@ -15,15 +13,19 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        androidResources.localeFilters.addAll(listOf("en"))
     }
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
