@@ -141,18 +141,7 @@ fun ColorLearningApp(colors: List<ColorData>) {
     var correctCount by remember { mutableIntStateOf(0) }
     var lastAnswerWasCorrect by remember { mutableStateOf<Boolean?>(null) }
 
-    val questionQueue = remember {
-        mutableStateListOf<QuestionState>().apply {
-            val pool = SettingsManager.getActiveColors(context)
-            addAll(
-                generateQueue(
-                    pool,
-                    SettingsManager.getMaxPos(context),
-                    SettingsManager.getCandidatesCount(context)
-                )
-            )
-        }
-    }
+    val questionQueue = remember { mutableStateListOf<QuestionState>() }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -160,22 +149,9 @@ fun ColorLearningApp(colors: List<ColorData>) {
                 val pool = SettingsManager.getActiveColors(context)
                 val maxPos = SettingsManager.getMaxPos(context)
                 val candidatesLimit = SettingsManager.getCandidatesCount(context)
-                val poolSet = pool.toSet()
 
-                // Purge/replace any existing question whose target or choices are no longer active
-                for (i in questionQueue.indices) {
-                    val q = questionQueue[i]
-                    if (q.target !in poolSet || q.choices.any { it !in poolSet }) {
-                        questionQueue[i] = generateQuestion(pool, candidatesLimit)
-                    }
-                }
-
-                while (questionQueue.size < maxPos) {
-                    questionQueue.add(generateQuestion(pool, candidatesLimit))
-                }
-                while (questionQueue.size > maxPos && questionQueue.size > 1) {
-                    questionQueue.removeAt(questionQueue.size - 1)
-                }
+                questionQueue.clear()
+                questionQueue.addAll(generateQueue(pool, maxPos, candidatesLimit))
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -183,6 +159,8 @@ fun ColorLearningApp(colors: List<ColorData>) {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+
+    if (questionQueue.isEmpty()) return
 
     val currentQuestion = questionQueue.first()
 
