@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Logo 4 Quadrant Colors (API 31+ Light Theme Dynamic System Palette) -->
-    <color name="logo_color_tl">@android:color/system_accent1_100</color>
-    <color name="logo_color_tr">@android:color/system_accent2_100</color>
-    <color name="logo_color_bl">@android:color/system_accent3_100</color>
-    <color name="logo_color_br">@android:color/system_neutral2_100</color>
+    <color name="logo_color_tl">@android:color/system_accent1_200</color>
+    <color name="logo_color_tr">@android:color/system_accent2_200</color>
+    <color name="logo_color_bl">@android:color/system_accent3_200</color>
+    <color name="logo_color_br">@android:color/system_neutral2_200</color>
+    <color name="logo_bg">@android:color/system_neutral1_10</color>
 </resources>

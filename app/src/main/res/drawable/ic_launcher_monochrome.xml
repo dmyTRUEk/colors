@@ -7,21 +7,21 @@
 
     <!-- Top-Left Quadrant -->
     <path
-        android:fillColor="@color/logo_color_tl"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M0,0 h53 v53 h-53 z" />
 
     <!-- Top-Right Quadrant -->
     <path
-        android:fillColor="@color/logo_color_tr"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M55,0 h53 v53 h-53 z" />
 
     <!-- Bottom-Left Quadrant -->
     <path
-        android:fillColor="@color/logo_color_bl"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M0,55 h53 v53 h-53 z" />
 
     <!-- Bottom-Right Quadrant -->
     <path
-        android:fillColor="@color/logo_color_br"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M55,55 h53 v53 h-53 z" />
 </vector>

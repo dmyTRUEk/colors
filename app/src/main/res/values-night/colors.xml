@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Logo 4 Quadrant Colors (Dark Theme Baseline) -->
-    <color name="logo_color_tl">#4F378B</color>
-    <color name="logo_color_tr">#4A4458</color>
-    <color name="logo_color_bl">#633B48</color>
+    <color name="logo_color_tl">#381E72</color>
+    <color name="logo_color_tr">#332D41</color>
+    <color name="logo_color_bl">#4A2532</color>
     <color name="logo_color_br">#49454F</color>
+    <color name="logo_bg">#FF121212</color>
 </resources>

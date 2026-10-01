@@ -4,8 +4,9 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- App Logo 4 Quadrant Colors (Light Theme Baseline) -->
-    <color name="logo_color_tl">#EADDFF</color>
-    <color name="logo_color_tr">#E8DEF8</color>
-    <color name="logo_color_bl">#FFD8E4</color>
+    <color name="logo_color_tl">#D0BCFF</color>
+    <color name="logo_color_tr">#CCC2DC</color>
+    <color name="logo_color_bl">#EFB8C8</color>
     <color name="logo_color_br">#E7E0EC</color>
+    <color name="logo_bg">#FFFFFFFF</color>
 </resources>

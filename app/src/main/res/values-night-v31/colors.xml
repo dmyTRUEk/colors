@@ -5,4 +5,5 @@
     <color name="logo_color_tr">@android:color/system_accent2_700</color>
     <color name="logo_color_bl">@android:color/system_accent3_700</color>
     <color name="logo_color_br">@android:color/system_neutral2_700</color>
+    <color name="logo_bg">@android:color/system_neutral1_900</color>
 </resources>
